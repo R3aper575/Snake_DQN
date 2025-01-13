@@ -1,0 +1,24 @@
+# Virtual Environment
+snake_ai_env/
+
+# Python Cache Files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# PyTorch Model Checkpoints
+snake_model.pth
+
+# System Files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# IDE Configurations
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
