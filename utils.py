@@ -17,7 +17,7 @@ def save_model(model, optimizer, file_path="snake_model.pth"):
     print(f"Model and optimizer saved to {file_path}")
 
 
-def load_model(model, optimizer, file_path="model.pth"):
+def load_model(model, optimizer, file_path="snake_model.pth"):
     """
     Loads the model's state dictionary from a file.
 
