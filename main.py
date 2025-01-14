@@ -10,7 +10,7 @@ def train(visualize):
     trainer = SnakeAITrainer(state_size=11, action_size=3)
 
     # Load a pre-trained model if available
-    trainer.model = load_model(trainer.model, "snake_model.pth")
+    trainer.model, trainer.optimizer = load_model(trainer.model, trainer.optimizer, "snake_model.pth")
 
     # Define exploration parameters
     epsilon_start = 1.0
@@ -60,7 +60,7 @@ def train(visualize):
 
         # Save the model every 50 episodes
         if (episode + 1) % 50 == 0:
-            save_model(trainer.model, "snake_model.pth")
+            save_model(trainer.model, trainer.optimizer, "snake_model.pth")
 
     # Visualize the training progress at the end
     plot_training_progress(scores, mean_scores)

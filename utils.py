@@ -2,7 +2,7 @@ import torch
 import os
 
 
-def save_model(model, file_path="model.pth"):
+def save_model(model, optimizer, file_path="snake_model.pth"):
     """
     Saves the model's state dictionary to a file.
 
@@ -10,11 +10,14 @@ def save_model(model, file_path="model.pth"):
         model (torch.nn.Module): The model to save.
         file_path (str): Path to save the model.
     """
-    torch.save(model.state_dict(), file_path)
-    print(f"Model saved to {file_path}")
+    torch.save({
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+    }, file_path)
+    print(f"Model and optimizer saved to {file_path}")
 
 
-def load_model(model, file_path="model.pth"):
+def load_model(model, optimizer, file_path="model.pth"):
     """
     Loads the model's state dictionary from a file.
 
@@ -26,12 +29,17 @@ def load_model(model, file_path="model.pth"):
         torch.nn.Module: The model with loaded weights.
     """
     if os.path.exists(file_path):
-        # Explicitly setting `weights_only=True`
-        model.load_state_dict(torch.load(file_path, weights_only=True))
-        print(f"Model loaded from {file_path}")
+        
+        try:
+            checkpoint = torch.load(file_path)
+            model.load_state_dict(checkpoint['model_state_dict'])
+            optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            print(f"Model and optimizer loaded from {file_path}")
+        except Exception as e:
+            print(f"Failed to load model: {e}")
     else:
-        print(f"File not found: {file_path}. Starting with a new model.")
-    return model
+        print(f"No model file found at {file_path}. Starting fresh.")
+    return model, optimizer
 
 
 def plot_training_progress(scores, mean_scores):

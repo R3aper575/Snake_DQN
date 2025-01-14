@@ -29,10 +29,16 @@ class SnakeGameAI:
 
     def render(self):
         """
-        Render the game using Pygame.
+        Render the game using Pygame and handle events to prevent freezing.
         """
         if not self.visualize:
             return  # Skip rendering if visualization is disabled
+
+        # Process events to prevent the window from becoming unresponsive
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:  # Handle window close
+                pygame.quit()
+                quit()
 
         # Clear the screen
         self.display.fill((0, 0, 0))
@@ -46,7 +52,7 @@ class SnakeGameAI:
 
         # Update the display
         pygame.display.flip()
-
+        
     def step(self, action):
         self.frame_iteration += 1
 
