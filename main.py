@@ -3,6 +3,7 @@ from trainer import SnakeAITrainer
 from utils import save_model, load_model, plot_training_progress, calculate_mean
 import torch
 import random
+import time
 
 # Main training loop
 def train(visualize):
@@ -20,6 +21,9 @@ def train(visualize):
     EPISODES = 1000  # Number of training episodes
     scores = []
     mean_scores = []
+
+    # Start tracking time
+    start_time = time.time()
 
     for episode in range(EPISODES):
         state = game.reset()
@@ -61,6 +65,14 @@ def train(visualize):
         # Save the model every 50 episodes
         if (episode + 1) % 50 == 0:
             save_model(trainer.model, trainer.optimizer, "snake_model.pth")
+
+    # Stop tracking time
+    end_time = time.time()
+    total_time = end_time - start_time
+
+    # Print total training time
+    minutes, seconds = divmod(total_time, 60)
+    print(f"\nTraining completed in {int(minutes)} minutes and {int(seconds)} seconds.")
 
     # Visualize the training progress at the end
     plot_training_progress(scores, mean_scores)
