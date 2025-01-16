@@ -10,6 +10,9 @@ __pycache__/
 # PyTorch Model Checkpoints
 snake_model.pth
 
+# results on parameter change
+training_results.txt
+
 # System Files
 .DS_Store
 Thumbs.db

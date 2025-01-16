@@ -16,6 +16,7 @@ class DQN(nn.Module):
         self.fc2 = nn.Linear(hidden_size, hidden_size)
         self.fc3 = nn.Linear(hidden_size, hidden_size)
         self.fc4 = nn.Linear(hidden_size, output_size)
+        self.dropout = nn.Dropout(0.2)
 
     def forward(self, x):
         """
@@ -29,6 +30,6 @@ class DQN(nn.Module):
         """
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
-        x = torch.relu(self.fc3(x))
+        x = self.dropout(torch.relu(self.fc3(x)))
         x = self.fc4(x)
         return x

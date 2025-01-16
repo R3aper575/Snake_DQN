@@ -1,6 +1,6 @@
 from game import SnakeGameAI
 from trainer import SnakeAITrainer
-from utils import save_model, load_model, plot_training_progress, calculate_mean
+from utils import save_model, load_model, plot_training_progress, calculate_mean, save_run_results
 import torch
 import random
 import time
@@ -16,7 +16,7 @@ def train(visualize):
     # Define exploration parameters
     epsilon_start = 1.0
     epsilon_min = 0.1
-    epsilon_decay = 0.995
+    epsilon_decay = 0.999
 
     EPISODES = 1000  # Number of training episodes
     scores = []
@@ -77,10 +77,30 @@ def train(visualize):
     # Visualize the training progress at the end
     plot_training_progress(scores, mean_scores)
 
+    return scores, total_time
+
 
 if __name__ == "__main__":
     # Ask the user if they want to enable visualization
     visualize_input = input("Enable visualization? (y/n): ").strip().lower()
     visualize = visualize_input == "y"
 
-    train(visualize)
+    # Start training
+    scores, total_time = train(visualize)
+
+    # Prepare parameters and results
+    parameters = {
+        "Episodes": 1000,
+        "Learning Rate": 0.001,
+        "Epsilon Start": 1.0,
+        "Epsilon Min": 0.1,
+        "Epsilon Decay": 0.999,
+    }
+    results = {
+        "Total Time (s)": round(total_time, 2),
+        "Max Score": max(scores),
+        "Average Score": round(sum(scores) / len(scores), 2),
+    }
+
+    # Save results to file
+    save_run_results(parameters, results)

@@ -7,10 +7,10 @@ from collections import deque
 from model import DQN
 
 # Hyperparameters
-LR = 0.01            # Learning rate
-GAMMA = 0.9           # Discount factor
+LR = 0.001            # Learning rate
+GAMMA = 0.99           # Discount factor
 MEMORY_SIZE = 100_000  # Replay buffer size
-BATCH_SIZE = 256       # Mini-batch size
+BATCH_SIZE = 64       # Mini-batch size
 
 
 class SnakeAITrainer:
@@ -25,7 +25,8 @@ class SnakeAITrainer:
         self.state_size = state_size
         self.action_size = action_size
         self.memory = deque(maxlen=MEMORY_SIZE)  # Replay buffer
-        self.model = DQN(state_size, 128, action_size)  # Neural network model
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Use GPU if available
+        self.model = DQN(state_size, 128, action_size).to(self.device)  # Move model to device
         self.optimizer = optim.Adam(self.model.parameters(), lr=LR)  # Optimizer
         self.criterion = nn.MSELoss()  # Mean squared error loss function
 
@@ -40,40 +41,51 @@ class SnakeAITrainer:
             next_state (numpy.ndarray): Next state after the action.
             done (bool): Whether the episode ended.
         """
-        self.memory.append((state, action, reward, next_state, done))
+        # Calculate priority based on the absolute TD-error or reward
+        if len(self.memory) > 0:
+            with torch.no_grad():
+                state_tensor = torch.tensor(state, dtype=torch.float32).to(self.device)
+                next_state_tensor = torch.tensor(next_state, dtype=torch.float32).to(self.device)
+                q_value = self.model(state_tensor).max().item()
+                max_next_q_value = self.model(next_state_tensor).max().item()
+                priority = abs(reward + (1 - done) * GAMMA * max_next_q_value - q_value)
+        else:
+            priority = abs(reward)  # Use reward as priority for initial transitions
+
+        # Store the transition with its priority
+        self.memory.append((priority, (state, action, reward, next_state, done)))
 
     def train_step(self):
         """
-        Trains the model using a random sample from the replay buffer.
+        Trains the model using a prioritized sample from the replay buffer.
         """
         if len(self.memory) < BATCH_SIZE:
             return
 
-        # Sample a mini-batch
-        minibatch = random.sample(self.memory, BATCH_SIZE)
-        states, actions, rewards, next_states, dones = zip(*minibatch)
+        # Sample based on priority
+        priorities, minibatch = zip(*random.choices(self.memory, weights=[m[0] for m in self.memory], k=BATCH_SIZE))
 
-        # Convert lists of NumPy arrays to a single NumPy array
-        states = torch.tensor(np.array(states), dtype=torch.float32)
-        actions = torch.tensor(actions, dtype=torch.long)
-        rewards = torch.tensor(rewards, dtype=torch.float32)
-        next_states = torch.tensor(np.array(next_states), dtype=torch.float32)
-        dones = torch.tensor(dones, dtype=torch.bool)
+        # Unpack minibatch
+        states, actions, rewards, next_states, dones = zip(*[m for m in minibatch])
 
-        # Compute Q-values for current states
+        states = torch.tensor(np.array(states), dtype=torch.float32).to(self.device)
+        actions = torch.tensor(actions, dtype=torch.long).to(self.device)
+        rewards = torch.tensor(rewards, dtype=torch.float32).to(self.device)
+        next_states = torch.tensor(np.array(next_states), dtype=torch.float32).to(self.device)
+        dones = torch.tensor(dones, dtype=torch.bool).to(self.device)
+
+        # Perform the Q-learning update
         q_values = self.model(states)
-
-        # Compute target Q-values for next states
         next_q_values = self.model(next_states)
-        target_q_values = q_values.clone()  # Clone Q-values for updates
-        for i in range(BATCH_SIZE):
-            if dones[i]:  # If the episode is done, use only the reward
-                target_q_values[i, actions[i]] = rewards[i]
-            else:  # Update using the Bellman equation
-                target_q_values[i, actions[i]] = rewards[i] + GAMMA * torch.max(next_q_values[i])
+        max_next_q_values = torch.max(next_q_values, dim=1)[0]
+        target_q_values = rewards + (1 - dones.float()) * GAMMA * max_next_q_values
 
-        # Calculate loss
-        loss = self.criterion(q_values, target_q_values)
+        q_values = q_values.gather(1, actions.unsqueeze(1)).squeeze(1)
+
+        # Calculate weighted loss using priorities
+        weights = torch.tensor(priorities, dtype=torch.float32).to(self.device)
+        normalized_weights = weights / weights.sum()  # Normalize weights
+        loss = (self.criterion(q_values, target_q_values) * normalized_weights).mean()
 
         # Backpropagation
         self.optimizer.zero_grad()

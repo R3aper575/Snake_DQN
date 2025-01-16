@@ -56,10 +56,8 @@ class SnakeGameAI:
     def step(self, action):
         self.frame_iteration += 1
 
-        # Remember the current head position
+        # Move the snake and check direction
         old_head = self.head[:]
-
-        # Update direction based on action
         directions = ["UP", "RIGHT", "DOWN", "LEFT"]
         idx = directions.index(self.direction)
         if action == [1, 0, 0]:  # Straight
@@ -69,7 +67,7 @@ class SnakeGameAI:
         elif action == [0, 0, 1]:  # Left turn
             self.direction = directions[(idx - 1) % 4]
 
-        # Move the snake
+        # Move head
         x, y = self.head
         if self.direction == "UP":
             y -= self.block_size
@@ -84,38 +82,43 @@ class SnakeGameAI:
 
         # Check for collisions
         if self._is_collision() or self.frame_iteration > 100 * len(self.snake):
-            return self._get_state(), -10, True, self.score  # Game over with penalty
+            return self._get_state(), -10, True, self.score
 
         # Check if snake eats food
         if self.head == self.food:
             self.score += 1
-            reward = 10  # Reward for eating food
+            reward = 10
             self.food = self._place_food()
         else:
-            # Small penalty for each step
-            reward = -0.1
             self.snake.pop()
+            reward = -0.05  # Penalize each step slightly
 
-            # Additional reward/penalty based on proximity to food
-            food_x, food_y = self.food
-            food_distance_before = abs(old_head[0] - food_x) + abs(old_head[1] - food_y)
-            food_distance_after = abs(self.head[0] - food_x) + abs(self.head[1] - food_y)
-
+            # Additional reward/penalty for proximity to food
+            food_distance_before = abs(old_head[0] - self.food[0]) + abs(old_head[1] - self.food[1])
+            food_distance_after = abs(self.head[0] - self.food[0]) + abs(self.head[1] - self.food[1])
             if food_distance_after < food_distance_before:
-                reward += 0.5  # Reward for moving closer to the food
+                reward += 0.5
             else:
-                reward -= 0.5  # Penalty for moving farther from the food
+                reward -= 0.2
 
         return self._get_state(), reward, False, self.score
 
-    def _is_collision(self):
-        x, y = self.head
-        # Check wall collision
-        if x < 0 or x >= self.width or y < 0 or y >= self.height:
+    def _is_collision(self, point=None):
+        """
+        Check for collisions with walls or the snake's own body.
+        """
+        # Default to the snake's head if no specific point is provided
+        if point is None:
+            point = self.head
+
+        # Check if point is out of bounds
+        if point[0] < 0 or point[0] >= self.width or point[1] < 0 or point[1] >= self.height:
             return True
-        # Check self-collision
-        if self.head in self.snake[1:]:
+
+        # Check if point collides with the snake's body
+        if point in self.snake[1:]:  # Exclude the head itself
             return True
+
         return False
 
     def _place_food(self):

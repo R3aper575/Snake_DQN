@@ -1,5 +1,6 @@
 import torch
 import os
+from datetime import datetime
 
 
 def save_model(model, optimizer, file_path="snake_model.pth"):
@@ -77,3 +78,33 @@ def calculate_mean(scores, window=10):
         mean = sum(scores[max(0, i - window + 1):i + 1]) / min(window, i + 1)
         mean_scores.append(mean)
     return mean_scores
+
+def save_run_results(parameters, results, file_path="training_results.txt"):
+    """
+    Save training parameters and results to a .txt file with a timestamp.
+
+    Args:
+        parameters (dict): Dictionary of meaningful parameters (e.g., epsilon, learning rate).
+        results (dict): Dictionary of training results (e.g., scores, average scores).
+        file_path (str): Path to the file where results will be appended.
+    """
+    # Generate timestamp
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Prepare the log content
+    log_content = f"\n=== Training Run at {timestamp} ===\n"
+    log_content += "Parameters:\n"
+    for key, value in parameters.items():
+        log_content += f"  {key}: {value}\n"
+    
+    log_content += "Results:\n"
+    for key, value in results.items():
+        log_content += f"  {key}: {value}\n"
+    
+    log_content += "===========================\n"
+
+    # Append the log content to the file
+    with open(file_path, "a") as file:
+        file.write(log_content)
+
+    print(f"Results saved to {file_path}")
