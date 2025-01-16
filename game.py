@@ -92,13 +92,19 @@ class SnakeGameAI:
             reward = 10  # Reward for eating food
             self.food = self._place_food()
         else:
-            reward = -0.1  # Small penalty for each step
+            # Small penalty for each step
+            reward = -0.1
             self.snake.pop()
 
-        # Additional reward for moving closer to the food
-        food_x, food_y = self.food
-        if abs(self.head[0] - food_x) < abs(old_head[0] - food_x) or abs(self.head[1] - food_y) < abs(old_head[1] - food_y):
-            reward += 1
+            # Additional reward/penalty based on proximity to food
+            food_x, food_y = self.food
+            food_distance_before = abs(old_head[0] - food_x) + abs(old_head[1] - food_y)
+            food_distance_after = abs(self.head[0] - food_x) + abs(self.head[1] - food_y)
+
+            if food_distance_after < food_distance_before:
+                reward += 0.5  # Reward for moving closer to the food
+            else:
+                reward -= 0.5  # Penalty for moving farther from the food
 
         return self._get_state(), reward, False, self.score
 

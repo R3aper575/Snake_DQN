@@ -29,9 +29,8 @@ def load_model(model, optimizer, file_path="snake_model.pth"):
         torch.nn.Module: The model with loaded weights.
     """
     if os.path.exists(file_path):
-        
         try:
-            checkpoint = torch.load(file_path)
+            checkpoint = torch.load(file_path, weights_only=True)
             model.load_state_dict(checkpoint['model_state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             print(f"Model and optimizer loaded from {file_path}")
@@ -40,7 +39,6 @@ def load_model(model, optimizer, file_path="snake_model.pth"):
     else:
         print(f"No model file found at {file_path}. Starting fresh.")
     return model, optimizer
-
 
 def plot_training_progress(scores, mean_scores):
     """
