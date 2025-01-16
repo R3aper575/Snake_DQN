@@ -8,7 +8,7 @@ from model import DQN
 
 # Hyperparameters
 LR = 0.001            # Learning rate
-GAMMA = 0.99           # Discount factor
+GAMMA = 0.9           # Discount factor
 MEMORY_SIZE = 100_000  # Replay buffer size
 BATCH_SIZE = 64       # Mini-batch size
 

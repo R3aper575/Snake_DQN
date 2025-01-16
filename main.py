@@ -16,7 +16,7 @@ def train(visualize):
     # Define exploration parameters
     epsilon_start = 1.0
     epsilon_min = 0.1
-    epsilon_decay = 0.999
+    epsilon_decay = 0.995
 
     EPISODES = 1000  # Number of training episodes
     scores = []
@@ -94,7 +94,7 @@ if __name__ == "__main__":
         "Learning Rate": 0.001,
         "Epsilon Start": 1.0,
         "Epsilon Min": 0.1,
-        "Epsilon Decay": 0.999,
+        "Epsilon Decay": 0.995,
     }
     results = {
         "Total Time (s)": round(total_time, 2),
