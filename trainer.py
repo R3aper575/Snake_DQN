@@ -43,8 +43,8 @@ class SnakeAITrainer:
         """
         priority = abs(reward)
         self.memory.append((priority, (state, action, reward, next_state, done)))
-        if len(self.memory) % 1000 == 0:  # Log every 1000 transitions
-            print(f"Replay buffer size: {len(self.memory)}")
+        if len(self.memory) == 100000:
+           print(f"Replay buffer fully used. {len(self.memory)}")
 
     def train_step(self):
         """
