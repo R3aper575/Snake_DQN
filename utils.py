@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 from datetime import datetime
 
-def save_model(model, optimizer, file_path="snake_model.pth"):
+def save_model(model, optimizer, epsilon, file_path="snake_model.pth"):
     """
     Save the model and optimizer state to a file.
 
@@ -15,6 +15,7 @@ def save_model(model, optimizer, file_path="snake_model.pth"):
     torch.save({
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
+        'epsilon': epsilon,
     }, file_path)
     print(f"Model saved to {file_path}")
 
@@ -32,15 +33,16 @@ def load_model(model, optimizer, file_path="snake_model.pth"):
     """
     if os.path.exists(file_path):
         try:
-            checkpoint = torch.load(file_path, weights_only=True)
+            checkpoint = torch.load(file_path, weights_only=False)
             model.load_state_dict(checkpoint['model_state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+            epsilon = checkpoint.get('epsilon', 1.0)  # Default to 1.0 if not saved
             print(f"Model and optimizer loaded from {file_path}")
         except Exception as e:
             print(f"Failed to load model: {e}")
     else:
         print(f"No model file found at {file_path}. Starting fresh.")
-    return model, optimizer
+    return model, optimizer, epsilon
 
 def plot_training_progress(scores, mean_scores):
     """
