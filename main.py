@@ -29,9 +29,12 @@ def train(visualize, epsilon=None):
     epsilon_min = 0.1
     epsilon_decay = 0.995
 
-    EPISODES = 1000
+    EPISODES = 300
     scores = []
     mean_scores = []
+
+    # Start timing the training process
+    start_time = time.time()
 
     for episode in range(EPISODES):
         state = game.reset()
@@ -69,7 +72,19 @@ def train(visualize, epsilon=None):
         if (episode + 1) % 50 == 0:
             save_model(trainer.model, trainer.optimizer, epsilon, "snake_model.pth")
 
-    return scores, mean_scores, epsilon
+            # Dynamic epsilon adjustment based on recent performance
+            recent_mean_score = sum(scores[-50:]) / min(len(scores), 50)
+            ############################ Mess with recent_mean_score necessary ####################
+            if recent_mean_score < 15:  
+                epsilon = min(1.0, epsilon * 1.2)  # Increase exploration
+                print(f"Low recent performance detected. Increasing epsilon to {epsilon:.3f}")
+            #######################################################################################
+
+        # End timing the training process
+        end_time = time.time()
+        total_time = end_time - start_time
+
+    return scores, total_time, mean_scores, epsilon
 
 if __name__ == "__main__":
     # Ask the user to enable visualization
@@ -77,11 +92,11 @@ if __name__ == "__main__":
     visualize = visualize_input == "y"
 
     # Run the training process
-    scores, total_time, epsilon = train(visualize)
+    scores, total_time, mean_scores, epsilon = train(visualize)
 
     # Prepare and save training parameters and results
     parameters = {
-        "Episodes": 1000,
+        "Episodes": 300,
         "Learning Rate": 0.001,
         "Epsilon Start": 1.0,
         "Epsilon Min": 0.1,
@@ -94,3 +109,7 @@ if __name__ == "__main__":
         "Average Score": round(sum(scores) / len(scores), 2),
     }
     save_run_results(parameters, results)
+
+    # Print total training time
+    minutes, seconds = divmod(total_time, 60)
+    print(f"\nTraining completed in {int(minutes)} minutes and {int(seconds)} seconds.")

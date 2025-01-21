@@ -74,15 +74,15 @@ class SnakeGameAI:
         self.head = [x, y]
         self.snake.insert(0, self.head)
 
-        if self._is_collision() or self.frame_iteration > self.timeout_multiplier * len(self.snake):
-            return self._get_state(), -10, True, self.score
+        reward = self._get_reward(old_head)
+
+        if self._is_collision() or self.frame_iteration > 50 * len(self.snake):
+            return self._get_state(), -50, True, self.score  # Larger penalty for losing
 
         if self.head == self.food:
             self.score += 1
-            reward = 10
             self.food = self._place_food()
         else:
-            reward = -0.1
             self.snake.pop()
 
         return self._get_state(), reward, False, self.score
@@ -99,6 +99,28 @@ class SnakeGameAI:
             y = random.randint(0, (self.height - self.block_size) // self.block_size) * self.block_size
             if [x, y] not in self.snake:
                 return [x, y]
+            
+    def _get_reward(self, old_head):
+        """
+        Calculate the reward for the current step.
+
+        Args:
+            old_head (list): The previous position of the snake's head.
+
+        Returns:
+            float: Reward for the current step.
+        """
+        if self.head == self.food:
+            return 50  # Reward for eating food
+
+        # Calculate distances to food before and after the move
+        food_distance_before = abs(old_head[0] - self.food[0]) + abs(old_head[1] - self.food[1])
+        food_distance_after = abs(self.head[0] - self.food[0]) + abs(self.head[1] - self.food[1])
+
+        if food_distance_after < food_distance_before:
+            return 5  # Reward for moving closer to food
+        else:
+            return -2  # Penalty for moving further away
 
     def _is_collision(self, point=None):
         """

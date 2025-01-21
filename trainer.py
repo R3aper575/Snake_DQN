@@ -41,10 +41,15 @@ class SnakeAITrainer:
             next_state (list): Next state after the action.
             done (bool): Whether the episode ended.
         """
-        priority = abs(reward)
+        state_tensor = torch.tensor([state], dtype=torch.float32)
+        next_state_tensor = torch.tensor([next_state], dtype=torch.float32)
+
+        # Calculate TD error for priority
+        q_value = self.model(state_tensor).max().item()
+        next_q_value = self.model(next_state_tensor).max().item() if not done else 0
+        priority = abs(reward + self.gamma * next_q_value - q_value)
+
         self.memory.append((priority, (state, action, reward, next_state, done)))
-        if len(self.memory) == 100000:
-           print(f"Replay buffer fully used. {len(self.memory)}")
 
     def train_step(self):
         """
