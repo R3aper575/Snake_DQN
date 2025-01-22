@@ -31,6 +31,7 @@ def load_model(model, optimizer, file_path="snake_model.pth"):
     Returns:
         tuple: The model and optimizer with loaded states.
     """
+    epsilon = 1.0  # Default
     if os.path.exists(file_path):
         try:
             checkpoint = torch.load(file_path, weights_only=False)

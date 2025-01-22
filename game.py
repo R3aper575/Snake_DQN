@@ -55,6 +55,7 @@ class SnakeGameAI:
         directions = ["UP", "RIGHT", "DOWN", "LEFT"]
         idx = directions.index(self.direction)
 
+        # Update the directions
         if action == [1, 0, 0]:  # Go straight
             pass
         elif action == [0, 1, 0]:  # Turn right
@@ -62,6 +63,7 @@ class SnakeGameAI:
         elif action == [0, 0, 1]:  # Turn left
             self.direction = directions[(idx - 1) % 4]
 
+        # move the snake
         x, y = self.head
         if self.direction == "UP":
             y -= self.block_size
@@ -74,15 +76,18 @@ class SnakeGameAI:
         self.head = [x, y]
         self.snake.insert(0, self.head)
 
-        reward = self._get_reward(old_head)
-
+        # Check for collisions or timeouts
+        collision_penalty = -5000
         if self._is_collision() or self.frame_iteration > 50 * len(self.snake):
-            return self._get_state(), -50, True, self.score  # Larger penalty for losing
+            return self._get_state(), collision_penalty, True, self.score
 
+        # Check if snake eats food
         if self.head == self.food:
             self.score += 1
+            reward = 5000  # Food reward
             self.food = self._place_food()
         else:
+            reward = self._get_reward(old_head)
             self.snake.pop()
 
         return self._get_state(), reward, False, self.score
@@ -110,17 +115,22 @@ class SnakeGameAI:
         Returns:
             float: Reward for the current step.
         """
-        if self.head == self.food:
-            return 50  # Reward for eating food
+        food_reward = 500  # Strong reward for eating food
+        step_penalty = -20  # Penalty for each step
+        proximity_reward = 10  # Reward for moving closer to the food
 
-        # Calculate distances to food before and after the move
+        if self.head == self.food:
+            return food_reward
+
+        # Calculate Manhattan distances to food before and after the move
         food_distance_before = abs(old_head[0] - self.food[0]) + abs(old_head[1] - self.food[1])
         food_distance_after = abs(self.head[0] - self.food[0]) + abs(self.head[1] - self.food[1])
 
+        # Reward moving closer to food, penalize moving farther
         if food_distance_after < food_distance_before:
-            return 5  # Reward for moving closer to food
+            return proximity_reward  # Moving closer to food
         else:
-            return -2  # Penalty for moving further away
+            return step_penalty  # Moving farther or aimless
 
     def _is_collision(self, point=None):
         """

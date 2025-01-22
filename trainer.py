@@ -26,7 +26,7 @@ class SnakeAITrainer:
         self.memory = deque(maxlen=100000)
 
         # Neural network model and optimizer
-        self.model = DQN(state_size, 128, action_size)
+        self.model = DQN(state_size, 256, action_size)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.lr)
         self.criterion = torch.nn.MSELoss()  # Loss function (Mean Squared Error)
 

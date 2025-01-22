@@ -27,9 +27,9 @@ def train(visualize, epsilon=None):
 
     # Exploration parameters
     epsilon_min = 0.1
-    epsilon_decay = 0.995
+    epsilon_decay = 0.999
 
-    EPISODES = 300
+    EPISODES = 1000
     scores = []
     mean_scores = []
 
@@ -75,9 +75,9 @@ def train(visualize, epsilon=None):
             # Dynamic epsilon adjustment based on recent performance
             recent_mean_score = sum(scores[-50:]) / min(len(scores), 50)
             ############################ Mess with recent_mean_score necessary ####################
-            if recent_mean_score < 15:  
-                epsilon = min(1.0, epsilon * 1.2)  # Increase exploration
-                print(f"Low recent performance detected. Increasing epsilon to {epsilon:.3f}")
+            # if recent_mean_score < 5:  
+            #     epsilon = min(1.0, epsilon * 1.1)  # Increase exploration
+            #     print(f"Low recent performance detected. Increasing epsilon to {epsilon:.3f}")
             #######################################################################################
 
         # End timing the training process
@@ -96,11 +96,11 @@ if __name__ == "__main__":
 
     # Prepare and save training parameters and results
     parameters = {
-        "Episodes": 300,
+        "Episodes": 1000,
         "Learning Rate": 0.001,
         "Epsilon Start": 1.0,
         "Epsilon Min": 0.1,
-        "Epsilon Decay": 0.995,
+        "Epsilon Decay": 0.999,
         "Final Epsilon": epsilon,
     }
     results = {
