@@ -115,22 +115,18 @@ class SnakeGameAI:
         Returns:
             float: Reward for the current step.
         """
-        food_reward = 500  # Strong reward for eating food
-        step_penalty = -20  # Penalty for each step
-        proximity_reward = 10  # Reward for moving closer to the food
-
-        if self.head == self.food:
-            return food_reward
-
-        # Calculate Manhattan distances to food before and after the move
         food_distance_before = abs(old_head[0] - self.food[0]) + abs(old_head[1] - self.food[1])
         food_distance_after = abs(self.head[0] - self.food[0]) + abs(self.head[1] - self.food[1])
 
-        # Reward moving closer to food, penalize moving farther
-        if food_distance_after < food_distance_before:
-            return proximity_reward  # Moving closer to food
+        # Reward shaping
+        if self.head == self.food:
+            return 1000  # Reward for eating food
+        elif self._is_collision():
+            return -100  # Penalty for collision
+        elif food_distance_after < food_distance_before:
+            return 10  # Reward for moving closer to food
         else:
-            return step_penalty  # Moving farther or aimless
+            return -1  # Small penalty for moving farther or idle movement
 
     def _is_collision(self, point=None):
         """
@@ -155,7 +151,7 @@ class SnakeGameAI:
         Retrieve the current state of the game.
 
         Returns:
-            list: Current state vector with size 11.
+            list: Current state vector with size 15 (expanded features).
         """
         head_x, head_y = self.head
         food_x, food_y = self.food
@@ -177,11 +173,17 @@ class SnakeGameAI:
         food_up = food_y < head_y
         food_down = food_y > head_y
 
-        # Combine all features into a fixed-size state vector
+        # Distance to walls
+        distance_up = head_y // self.block_size
+        distance_down = (self.height - head_y) // self.block_size
+        distance_left = head_x // self.block_size
+        distance_right = (self.width - head_x) // self.block_size
+
         return [
             danger_straight, danger_right, danger_left,
             direction_up, direction_down, direction_left, direction_right,
             food_left, food_right, food_up, food_down,
+            distance_up, distance_down, distance_left, distance_right
         ]
 
     def render(self):

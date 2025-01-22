@@ -15,7 +15,7 @@ class SnakeAITrainer:
         gamma (float): Discount factor for future rewards.
         batch_size (int): Size of the minibatch for training.
     """
-    def __init__(self, state_size, action_size, lr=0.001, gamma=0.99, batch_size=64):
+    def __init__(self, state_size, action_size, lr=0.0005, gamma=0.95, batch_size=128):
         self.state_size = state_size
         self.action_size = action_size
         self.lr = lr  # Learning rate
@@ -23,7 +23,7 @@ class SnakeAITrainer:
         self.batch_size = batch_size  # Batch size for training
 
         # Replay memory for storing transitions
-        self.memory = deque(maxlen=100000)
+        self.memory = deque(maxlen=200000)
 
         # Neural network model and optimizer
         self.model = DQN(state_size, 256, action_size)
@@ -47,7 +47,10 @@ class SnakeAITrainer:
         # Calculate TD error for priority
         q_value = self.model(state_tensor).max().item()
         next_q_value = self.model(next_state_tensor).max().item() if not done else 0
-        priority = abs(reward + self.gamma * next_q_value - q_value)
+
+        # Priority scaling factor
+        alpha = 0.6
+        priority = (abs(reward + self.gamma * next_q_value - q_value) + 1e-5) ** alpha
 
         self.memory.append((priority, (state, action, reward, next_state, done)))
 
@@ -61,8 +64,8 @@ class SnakeAITrainer:
 
         # Sample a minibatch with priority weighting
         priorities, minibatch = zip(*random.choices(
-            self.memory, 
-            weights=[m[0] for m in self.memory], 
+            self.memory,
+            weights=[m[0] for m in self.memory],  # Use priorities for weighted sampling
             k=self.batch_size
         ))
 
@@ -87,9 +90,11 @@ class SnakeAITrainer:
         # Get Q-values for the taken actions
         q_values = q_values.gather(1, actions.unsqueeze(1)).squeeze(1)
 
+        # Normalize the priorities for weighted loss
+        priorities_tensor = torch.tensor(priorities, dtype=torch.float32)
+        normalized_weights = priorities_tensor / priorities_tensor.sum()
+
         # Compute the weighted loss
-        weights = torch.tensor(priorities, dtype=torch.float32)
-        normalized_weights = weights / weights.sum()  # Normalize weights
         loss = (self.criterion(q_values, target_q_values) * normalized_weights).mean()
 
         # Perform backpropagation

@@ -16,7 +16,7 @@ def train(visualize, epsilon=None):
     """
     # Initialize game and trainer
     game = SnakeGameAI(visualize=visualize)
-    trainer = SnakeAITrainer(state_size=11, action_size=3)
+    trainer = SnakeAITrainer(state_size=15, action_size=3)
 
     # Load model, optimizer, and epsilon
     trainer.model, trainer.optimizer, loaded_epsilon = load_model(trainer.model, trainer.optimizer, "snake_model.pth")
@@ -27,9 +27,9 @@ def train(visualize, epsilon=None):
 
     # Exploration parameters
     epsilon_min = 0.1
-    epsilon_decay = 0.999
+    epsilon_decay = 0.995
 
-    EPISODES = 10000
+    EPISODES = 300
     scores = []
     mean_scores = []
 
@@ -67,7 +67,7 @@ def train(visualize, epsilon=None):
         scores.append(score)
         mean_scores = calculate_mean(scores)
 
-        print(f"Episode {episode + 1}/{EPISODES}, Score: {score}, Reward: {round(total_reward, 2)}")
+        print(f"Episode {episode + 1}/{EPISODES}, Score: {score}, Reward: {round(total_reward, 2)}, Epsilon: {epsilon:.3f}")
 
         if (episode + 1) % 50 == 0:
             save_model(trainer.model, trainer.optimizer, epsilon, "snake_model.pth")
@@ -96,11 +96,11 @@ if __name__ == "__main__":
 
     # Prepare and save training parameters and results
     parameters = {
-        "Episodes": 10000,
+        "Episodes": 300,
         "Learning Rate": 0.001,
         "Epsilon Start": 1.0,
         "Epsilon Min": 0.1,
-        "Epsilon Decay": 0.999,
+        "Epsilon Decay": 0.995,
         "Final Epsilon": epsilon,
     }
     results = {
