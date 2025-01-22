@@ -29,7 +29,7 @@ def train(visualize, epsilon=None):
     epsilon_min = 0.1
     epsilon_decay = 0.999
 
-    EPISODES = 1000
+    EPISODES = 10000
     scores = []
     mean_scores = []
 
@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
     # Prepare and save training parameters and results
     parameters = {
-        "Episodes": 1000,
+        "Episodes": 10000,
         "Learning Rate": 0.001,
         "Epsilon Start": 1.0,
         "Epsilon Min": 0.1,
