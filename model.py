@@ -13,10 +13,19 @@ class DQN(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super(DQN, self).__init__()
 
-        # Define the layers of the neural network
-        self.fc1 = nn.Linear(input_size, hidden_size * 2)  # First hidden layer
-        self.fc2 = nn.Linear(hidden_size * 2, hidden_size * 2)  # Second hidden layer
-        self.fc3 = nn.Linear(hidden_size * 2, hidden_size)  # Third hidden layer
+        # Define the layers of the neural network with batch normalization and dropout
+        self.fc1 = nn.Linear(input_size, hidden_size * 2)
+        self.bn1 = nn.BatchNorm1d(hidden_size * 2)  # Batch normalization
+        self.dropout1 = nn.Dropout(0.2)  # Dropout layer
+
+        self.fc2 = nn.Linear(hidden_size * 2, hidden_size * 2)
+        self.bn2 = nn.BatchNorm1d(hidden_size * 2)
+        self.dropout2 = nn.Dropout(0.2)
+
+        self.fc3 = nn.Linear(hidden_size * 2, hidden_size)
+        self.bn3 = nn.BatchNorm1d(hidden_size)
+        self.dropout3 = nn.Dropout(0.2)
+
         self.fc4 = nn.Linear(hidden_size, output_size)  # Output layer
 
     def forward(self, x):
@@ -29,8 +38,11 @@ class DQN(nn.Module):
         Returns:
             Tensor: Q-values for each action.
         """
-        x = torch.relu(self.fc1(x))  # Activation for the first layer
-        x = torch.relu(self.fc2(x))  # Activation for the second layer
-        x = torch.relu(self.fc3(x))  # Activation for the third layer
-        x = self.fc4(x)  # Linear output layer (no activation function for Q-values)
+        x = torch.relu(self.bn1(self.fc1(x)))  # Batch norm and activation
+        x = self.dropout1(x)  # Dropout after first layer
+        x = torch.relu(self.bn2(self.fc2(x)))
+        x = self.dropout2(x)
+        x = torch.relu(self.bn3(self.fc3(x)))
+        x = self.dropout3(x)
+        x = self.fc4(x)  # Linear output layer
         return x

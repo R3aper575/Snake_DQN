@@ -7,6 +7,10 @@ __pycache__/
 *.pyo
 *.pyd
 
+# Old Training Models
+__old_models/
+*.pth
+
 # PyTorch Model Checkpoints
 snake_model.pth
 
